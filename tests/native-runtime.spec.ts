@@ -1,6 +1,6 @@
 /** Actual OS child/UDP lifecycle against a synthetic executable; no Luanti/UI acceptance. */
 import {createHash} from 'node:crypto'
-import {mkdir,mkdtemp,writeFile,rm,realpath} from 'node:fs/promises'
+import {mkdir,mkdtemp,writeFile,rm,realpath,lstat,rename} from 'node:fs/promises'
 import {join} from 'node:path'
 import {expect,it} from 'vitest'
 import {testRoot} from './test-root.ts'
@@ -21,9 +21,11 @@ process.on('SIGINT',()=>udp.close(()=>{fs.closeSync(fd);process.exit(0)}));
 `
  await writeFile(join(engineRoot,'server'),binary,{mode:0o700})
  await writeFile(join(engineRoot,'manifest.json'),JSON.stringify({capabilities:{http:true},engine:{path:'server',sha256:createHash('sha256').update(binary).digest('hex')}}))
- const runtime=new NativeEngineRuntime(input=>startNativeEngineSession(engineRoot,join(root,'state'),input))
+ const runtime=new NativeEngineRuntime((input,expectedDirectory)=>startNativeEngineSession(engineRoot,join(root,'state'),input,expectedDirectory))
  try {
-  const q={contractVersion:'engine-runtime/v2' as const,requestId:'native-start',worldRef:'fixture-world',engineProfile:{profileId:'luanti-native/v1',worldPath,userPath}}
+  const directory=await lstat(worldPath,{bigint:true})
+  const q={contractVersion:'engine-runtime/v2' as const,requestId:'native-start',worldRef:'fixture-world',engineProfile:{profileId:'luanti-native/v1',worldPath,userPath,
+   expectedDirectory:{device:String(directory.dev),inode:String(directory.ino)}}}
   const first=await runtime.StartWorldRuntime(q);expect(first.error).toBeNull()
   const selector={contractVersion:q.contractVersion,requestId:'status',connectionRef:first.result!.connectionRef}
   expect((await runtime.ReadRuntimeStatus(selector)).result?.state).toBe('RUNNING')
@@ -34,5 +36,10 @@ process.on('SIGINT',()=>udp.close(()=>{fs.closeSync(fd);process.exit(0)}));
   expect(second.result?.connectionIncarnationRef).not.toBe(first.result!.connectionIncarnationRef)
   expect((await runtime.ReadRuntimeStatus(selector)).error?.code).toBe('CONNECTION_NOT_FOUND')
   await runtime.StopWorldRuntime({...selector,requestId:'stop-second',connectionRef:second.result!.connectionRef})
+  await rename(worldPath,worldPath+'-old');await mkdir(worldPath)
+  await writeFile(join(worldPath,'world.mt'),'world_name = Fixture\n')
+  const replaced=await runtime.StartWorldRuntime({...q,requestId:'replaced'})
+  expect(replaced.error?.code).toBe('ADAPTER_UNAVAILABLE')
+  expect(replaced.result).toBeNull()
  }finally{await runtime.close();await rm(root,{recursive:true,force:true})}
 })

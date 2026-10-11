@@ -33,8 +33,8 @@
         "2878da79184d17234d50928cddf79c78770a83e9 feat(desktop-host): ship restricted native HTTP engine capability",
         "50e319be3afeb7fae7f2ce2abe2b891132037c3d feat(desktop-host): authenticate native Luanti maintenance control"
       ],
-      "deliveredSHA256": "8fbb1e75fcfce8083df318be323c180c349a3ae0a2463cf7784ab77081e664d7",
-      "changes": "Import NativeCleanupFailure and mark startup cleanup failure while preserving original cause; successful native behavior unchanged."
+      "deliveredSHA256": "9c8d433f49f9fb0f96b6a3e5e3874f2f186e022ae4a630bac65934a1fbb5ab19",
+      "changes": "Preserve prior cleanup marker; supplement startup with optional source directory identity verification before/after world locking and before spawn; bigint identity preserves 64-bit inode values."
     },
     {
       "sourcePath": "apps/desktop-host/src/game-client.ts",
@@ -181,6 +181,61 @@
         "50e319be3afeb7fae7f2ce2abe2b891132037c3d feat(desktop-host): authenticate native Luanti maintenance control"
       ],
       "deliveredSHA256": "9a3828ce5eda44fe6df8f7d091aa0caa8976b4740799f2eef1546eeec9af83cc"
+    },
+    {
+      "sourcePath": "apps/desktop/scripts/hanaworlds-game-client.json",
+      "targetPath": "scripts/hanaworlds-game-client.json",
+      "sourceSHA256": "ad98b2bd515e6899d8a86bae6c3d699fcccf95e9ec934483c56d8bee9e4a56cb",
+      "deliveredSHA256": "ad98b2bd515e6899d8a86bae6c3d699fcccf95e9ec934483c56d8bee9e4a56cb",
+      "history": [
+        "0ace297ca6a7517447051677e850b59949eb70fe feat(desktop): create and view flat worlds in the current conversation"
+      ]
+    },
+    {
+      "sourcePath": "apps/desktop/scripts/hanaworlds-luanti-content.json",
+      "targetPath": "scripts/hanaworlds-luanti-content.json",
+      "sourceSHA256": "80608ecc47c26d4ef0b7871e3ff95a99d69596e090f2f8762ef77990352f27f3",
+      "deliveredSHA256": "80608ecc47c26d4ef0b7871e3ff95a99d69596e090f2f8762ef77990352f27f3",
+      "history": [
+        "2919b536495842bc57e93039e2d4e412a730bf5f feat(desktop): compose K3 region write path, flat world and product game supply"
+      ]
+    },
+    {
+      "sourcePath": "apps/desktop/scripts/prepare-hanaworlds-game-client.mjs",
+      "targetPath": "scripts/prepare-hanaworlds-game-client.mjs",
+      "sourceSHA256": "f64a97dd7a859e1f556f11b46fec5abeb34ff7f8ae4f980c3acecd7dde5d3cc4",
+      "deliveredSHA256": "f64a97dd7a859e1f556f11b46fec5abeb34ff7f8ae4f980c3acecd7dde5d3cc4",
+      "history": [
+        "0ace297ca6a7517447051677e850b59949eb70fe feat(desktop): create and view flat worlds in the current conversation"
+      ]
+    },
+    {
+      "sourcePath": "apps/desktop/scripts/prepare-hanaworlds-luanti-content.mjs",
+      "targetPath": "scripts/prepare-hanaworlds-luanti-content.mjs",
+      "sourceSHA256": "3ff131805d2484a53eeb6875a01eec9876278833d9feea08e0c97cd9e52aa24c",
+      "deliveredSHA256": "3ff131805d2484a53eeb6875a01eec9876278833d9feea08e0c97cd9e52aa24c",
+      "history": [
+        "2919b536495842bc57e93039e2d4e412a730bf5f feat(desktop): compose K3 region write path, flat world and product game supply"
+      ]
     }
-  ]
+  ],
+  "worldPairingExtraction": {
+    "sourcePath": "apps/desktop-host/src/world-pairing.ts",
+    "baseline": "bd964cdf19785b14aa1e2f6d2a2ee350190a038f",
+    "migrated": [
+      "worlds/ setup (registerRoot/createFlat)",
+      "world.mt display name and map_meta.txt flat tag (catalog)"
+    ],
+    "keptInBridge": [
+      "connect",
+      "noLiveBinding",
+      "name confirmation",
+      "localContext"
+    ],
+    "locatorProvider": {
+      "repository": "https://github.com/yzsnstotz/hanaworlds-adapter-luanti",
+      "main": "2d0c8d2fdc1a0733bc9cabf27f1589fe2a38ab63",
+      "document": "docs/source-locator.md"
+    }
+  }
 }

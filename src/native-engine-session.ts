@@ -86,6 +86,7 @@ export async function lockIdleNativeWorld(stateRoot: string, worldPath: string):
  */
 export async function startNativeEngineSession(
   runtimeRoot: string, stateRoot: string, input: NativeControlInput,
+  expectedDirectory?: {device:string;inode:string},
 ): Promise<NativeControlSession> {
   if (process.platform !== 'darwin' || process.arch !== 'arm64') throw new Error('ENGINE_PLATFORM_UNAVAILABLE')
   if (!input.requesterRef || !input.operationRef) throw new Error('LOCAL_WORLD_CONTEXT_REQUIRED')
@@ -95,8 +96,13 @@ export async function startNativeEngineSession(
   const manifest = raw as RuntimeManifest
   if (manifest.capabilities?.http !== true) throw new Error('ENGINE_HTTP_UNAVAILABLE')
   const enginePath = await installedBinary(root, manifest.engine)
-  const world = await realpath(input.worldPath), userPath = await realpath(input.userPath), identity = await stat(world)
+  const world = await realpath(input.worldPath), userPath = await realpath(input.userPath), identity = await stat(world,{bigint:true})
   if (world !== input.worldPath || userPath !== input.userPath || !identity.isDirectory()) throw new Error('WORLD_SELECTION_INVALID')
+  if(expectedDirectory&&(String(identity.dev)!==expectedDirectory.device||String(identity.ino)!==expectedDirectory.inode))throw new Error('LOCAL_WORLD_CHANGED')
+  const assertIdentity=async():Promise<void>=>{
+    const current=await stat(world,{bigint:true})
+    if(await realpath(world)!==world||current.dev!==identity.dev||current.ino!==identity.ino)throw new Error('LOCAL_WORLD_CHANGED')
+  }
   await mkdir(stateRoot, { recursive: true, mode: 0o700 })
   const lockPath = join(stateRoot, `${createHash('sha256').update(world).digest('hex')}.lock`)
   const lock = await open(lockPath, 'wx', 0o600)
@@ -114,6 +120,7 @@ export async function startNativeEngineSession(
     await lock.close(); await rm(lockPath)
   })()
   try {
+    await assertIdentity()
     if ((await worldProcesses(world)).length !== 0) throw new Error('WORLD_ALREADY_RUNNING')
     directory = await mkdtemp(join(stateRoot, 'session-')); await chmod(directory, 0o700)
     const requestedPort = await unusedPort(), config = join(directory, 'server.conf')
@@ -125,6 +132,7 @@ export async function startNativeEngineSession(
     ].join('\n'))
     await configFile.close()
     const env = { PATH: '/usr/bin:/bin:/usr/sbin:/sbin', HOME: directory, LUANTI_USER_PATH: userPath, LANG: 'en_US.UTF-8' }
+    await assertIdentity()
     engine = spawn(enginePath, ['--world', world, '--config', config, '--logfile', ''], { env, stdio: ['ignore', 'pipe', 'pipe'] })
     const child = engine
     engineDone = new Promise((resolve, reject) => { child.once('error', () => { reject(new Error('ENGINE_START_FAILED')) }); child.once('exit', (code, signal) => { resolve({ code, signal }) }) })
@@ -146,7 +154,7 @@ export async function startNativeEngineSession(
     const pid = child.pid
     if (!pid) throw new Error('ENGINE_START_FAILED')
     const currentWorld = async (): Promise<void> => {
-      const current = await stat(world)
+      const current = await stat(world,{bigint:true})
       if (released || child.exitCode !== null || child.signalCode !== null
         || current.dev !== identity.dev || current.ino !== identity.ino
         || await realpath(world) !== world) throw new Error('LOCAL_WORLD_CHANGED')
@@ -182,7 +190,7 @@ export async function startNativeEngineSession(
       alive: () => !released && child.exitCode === null && child.signalCode === null,
       verify, stop,
       async assertStopped() {
-        const current = await stat(world)
+        const current = await stat(world,{bigint:true})
         if (!nativeStopped || child.exitCode !== 0 || child.signalCode !== null
           || current.dev !== identity.dev || current.ino !== identity.ino
           || await realpath(world) !== world || (await worldProcesses(world)).length !== 0) throw new Error('STOPPED_WORLD_UNPROVEN')

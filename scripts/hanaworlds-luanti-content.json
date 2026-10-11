@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "components": [
+    {
+      "id": "voxelibre",
+      "kind": "game",
+      "name": "VoxeLibre",
+      "version": "0.92.3",
+      "installName": "mineclone2",
+      "license": "GPL-3.0-or-later (code) / CC-BY-SA-4.0 (media); see LICENSE.txt and LEGAL.md in the game",
+      "source": {
+        "url": "https://cdn.content.luanti.org/uploads/6b12075e71.zip",
+        "page": "https://content.luanti.org/packages/Wuzzy/mineclone2/",
+        "revision": "a523240fb89713ffa6302696e8275bbd7de3bd49",
+        "archiveSha256": "51ea9242aabb1f29575abbfb599c79bcde9435616ea097c0582e11ac1b2b279d",
+        "archiveBytes": 84225955
+      },
+      "archive": "voxelibre-0.92.3.zip",
+      "format": "zip",
+      "root": "mineclone2"
+    },
+    {
+      "id": "worldedit",
+      "kind": "mod",
+      "name": "WorldEdit",
+      "version": "62ffafe3bcb386600c431ef3840d91c3c8f85639",
+      "installName": "worldedit",
+      "license": "AGPL-3.0; LICENSE.txt and LICENSE.AGPLv3.txt with the complete upstream source archive are packaged alongside",
+      "source": {
+        "url": "https://codeload.github.com/Uberi/Minetest-WorldEdit/tar.gz/62ffafe3bcb386600c431ef3840d91c3c8f85639",
+        "page": "https://github.com/Uberi/Minetest-WorldEdit",
+        "revision": "62ffafe3bcb386600c431ef3840d91c3c8f85639",
+        "archiveSha256": "0a99f7bcf3f0d63042467198072d48b812662b59d72b0aa3a091433d9330c078",
+        "archiveBytes": 107608
+      },
+      "archive": "Minetest-WorldEdit-62ffafe3bcb386600c431ef3840d91c3c8f85639.tar.gz",
+      "format": "tar.gz",
+      "root": "Minetest-WorldEdit-62ffafe3bcb386600c431ef3840d91c3c8f85639/worldedit"
+    }
+  ]
+}

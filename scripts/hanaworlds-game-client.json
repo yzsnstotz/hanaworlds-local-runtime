@@ -1,0 +1,20 @@
+{
+  "name": "Luanti",
+  "version": "5.17.0",
+  "url": "https://github.com/luanti-org/luanti/releases/download/5.17.0/luanti_5.17.0_macos12.3_arm64.zip",
+  "archive": "luanti_5.17.0_macos12.3_arm64.zip",
+  "bytes": 13619805,
+  "sha256": "0ba118b537d3cc6fd07cd2268fef25e515fc6d87c27ad69b476144a8e28dba3c",
+  "executable": {
+    "path": "luanti.app/Contents/MacOS/luanti",
+    "sha256": "91b481f4a806a736ada50f7b6a76b8e4f8c9456596bcc49deaecbda97a3ecc7b"
+  },
+  "license": {
+    "file": "CLIENT-LICENSE.txt",
+    "url": "https://raw.githubusercontent.com/luanti-org/luanti/5.17.0/LICENSE.txt",
+    "sha256": "f37450f476f997f14fbed7a1ba96462864fe4f689024b6903f71cf31973e84a5",
+    "code": "LGPL-2.1-or-later",
+    "media": "CC-BY-SA-3.0 and per-file licenses in LICENSE.txt"
+  },
+  "use": "Bundled graphical viewer for the current Host-owned loopback world; no game grant or administrator privilege."
+}

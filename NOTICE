@@ -1,10 +1,10 @@
-hanaworlds-local-runtime · local-runtime-01
+hanaworlds-local-runtime · local-runtime-01 / local-runtime-02
 
 Name · version/revision · license · origin · use
 
 - DeepSeek Harness / Cordis · @deepseek-ai/cordis 4.0.4 · MIT · https://github.com/deepseek-ai/deepseek-harness (vendor/cordis; npm published package) · dependency for Cordis apply/service lifecycle, D-5.
 - HanaWorlds desktop source · bd964cdf (full baseline in docs/PROVENANCE.json) · MIT (LICENSE retained) · https://github.com/yzsnstotz/hanaworlds-desktop · requested five TS files, native Go helper, fixture probe and runtime assembly script; source migration with one documented native startup cleanup marker.
-- hanaworlds-contracts · 2.3.0 / f89b05f61f5db79c32c6d63b3ea5c3b79c5c53ef · MIT · git+https://github.com/yzsnstotz/hanaworlds-contracts.git#v2.3.0 · published neutral port types/validators/examples; no sibling module imports.
+- hanaworlds-contracts · 2.5.0 / f0c6751e984bb15081ea70c351ccbb484c91226c · MIT · git+https://github.com/yzsnstotz/hanaworlds-contracts.git#v2.5.0 · published neutral port types/validators/examples; no sibling module imports.
 - Luanti · 5.17.0 / c0e6812b1a4260bb25a1f606f70f55f4962bb97d · LGPL-2.1-or-later (engine; artwork licenses supplied by artifact) · https://github.com/luanti-org/luanti · external runtime, D-7. Not bundled in this source package. Build script copies upstream license and artifact licenses; preserves pinned artifact hash.
 - Go toolchain · tested go1.26.0; module language minimum 1.25 · BSD-3-Clause · https://github.com/golang/go · builds native-control and fixture probe; assembly copies toolchain LICENSE.
 - github.com/HimbeerserverDE/mt · v0.0.0-20260821120253-7d1d3af7c7d4 · MIT · https://github.com/HimbeerserverDE/mt · native Luanti protocol; assembly copies module LICENSE.
@@ -17,3 +17,9 @@ Name · version/revision · license · origin · use
 - Vitest · 4.1.11 · MIT · https://github.com/vitest-dev/vitest · test runner only.
 
 Game/mod archives are not bundled. DesktopLuantiContent requires an external supply.json containing each supplied component's source, revision, license and archive/per-file hashes. It does not choose or change upstream usage.
+
+local-runtime-02 supply migration (source-only; archives remain externally provided):
+- Luanti graphical client · 5.17.0 · LGPL-2.1-or-later (code), CC-BY-SA-3.0 and per-file media licenses · https://github.com/luanti-org/luanti/releases/tag/5.17.0 · pinned unchanged signed macOS arm64 client archive and preparation script.
+- VoxeLibre · 0.92.3 / a523240fb89713ffa6302696e8275bbd7de3bd49 · GPL-3.0-or-later (code), CC-BY-SA-4.0 (media) · https://content.luanti.org/packages/Wuzzy/mineclone2/ · unchanged pinned game supply, D-8.
+- WorldEdit · 62ffafe3bcb386600c431ef3840d91c3c8f85639 · AGPL-3.0 · https://github.com/Uberi/Minetest-WorldEdit · unchanged pinned mod archive, full upstream source/license delivery through the existing preparation script.
+- hanaworlds-adapter-luanti · 0.16.0 / 2d0c8d2fdc1a0733bc9cabf27f1589fe2a38ab63 · MIT · https://github.com/yzsnstotz/hanaworlds-adapter-luanti · published source-locator documentation and independently installed test counterparty only; no runtime package dependency or copied implementation.
