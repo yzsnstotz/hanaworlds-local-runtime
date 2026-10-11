@@ -69,6 +69,14 @@ async function rig() {
 it('exports the eight-operation lifecycle provider',()=>{
  expect(typeof (plugin as any).LocalWorldLifecycle).toBe('function')
 })
+it('validates foreign provider public error facts without sharing an exception constructor',async()=>{
+ const r=await rig()
+ const foreign=Object.assign(Error('separate bundled SDK'),{publicError:{code:'SCHEMA_INVALID',phase:'decode',retryability:'NEVER',mutationState:'NONE',transactionRef:null,causeCode:null,reason:'INVALID_SHAPE'}})
+ r.source.discover=async()=>{throw foreign}
+ await expect(r.runtime.list(q)).rejects.toMatchObject({publicError:foreign.publicError})
+ r.source.discover=async()=>{throw Object.assign(Error('invalid public error'),{publicError:{code:'NOT_A_PUBLIC_CODE'}})}
+ await expect(r.runtime.list(q)).rejects.toMatchObject({publicError:{code:'SCHEMA_INVALID'}})
+})
 it('lists same-name worlds by source reference with verified Luanti tags and no path leak',async()=>{
  const r=await rig();const response=await r.runtime.list(q)
  validateBoundResponse(q.contractVersion,'list',q,response)

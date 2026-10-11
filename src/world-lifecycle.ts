@@ -4,7 +4,7 @@ import {constants} from 'node:fs'
 import {lstat, mkdir, open, readFile, realpath} from 'node:fs/promises'
 import {dirname, isAbsolute, join} from 'node:path'
 import {z} from 'zod'
-import {ContractError, describeSourceWorld, validateRequest, validateBoundResponse, worldLifecycle,
+import {ContractError, describeSourceWorld, validateType, validateRequest, validateBoundResponse, worldLifecycle,
  type OperationMap, type WorldLifecyclePort, type LocalWorldsPort, type EngineRuntimePort,
  type WorldLifecycleWorld, type Error as PublicError, type ErrorCode} from 'hanaworlds-contracts'
 import {DesktopLuantiContent} from './luanti-content.ts'
@@ -38,6 +38,17 @@ function result<T>(response:{result:T|null;error:PublicError|null}):T {
  if(response.error)throw new Refused(response.error)
  if(response.result===null)deny('SOURCE_RESULT_MISSING')
  return response.result
+}
+/** Independent providers may embed their own SDK. Admit public error facts;
+ * never require their private exception constructor to be ours. */
+async function peer<T>(call:()=>Promise<T>):Promise<T> {
+ try{return await call()}catch(error){
+  if(error!==null && typeof error==='object' && 'publicError' in error){
+   const fact=validateType('Error',error.publicError)
+   throw new ContractError(fact.code,fact.phase,fact.reason,{...fact})
+  }
+  throw error
+ }
 }
 /** Only the paired world source interprets locators; no locator or engine profile reaches hosts. */
 export class LocalWorldLifecycle implements LocalWorldLifecyclePort {
@@ -90,7 +101,7 @@ export class LocalWorldLifecycle implements LocalWorldLifecyclePort {
   return pending
  }
  private async locate(source:LocalWorldsPort,ref:string,roots:readonly string[]):Promise<Locator> {
-  const response=await describeSourceWorld(source,{contractVersion:'local-worlds/v2',requestId:randomUUID(),worldRef:ref})
+  const response=await peer(()=>describeSourceWorld(source,{contractVersion:'local-worlds/v2',requestId:randomUUID(),worldRef:ref}))
   const raw=result(response).sourceLocator,parsed=locatorSchema.safeParse(raw)
   if(!parsed.success)deny('SOURCE_LOCATOR_INVALID')
   const loc=parsed.data
@@ -144,7 +155,7 @@ export class LocalWorldLifecycle implements LocalWorldLifecyclePort {
   const rows:WorldLifecycleWorld[]=[]
   for(const worldRoot of roots){
    const q={contractVersion:'local-worlds/v2' as const,requestId:randomUUID(),worldRoot}
-   const read=result(validateBoundResponse('local-worlds/v2','discover',q,await source.discover(q)))
+   const read=result(validateBoundResponse('local-worlds/v2','discover',q,await peer(()=>source.discover(q))))
    rows.push(...read.worlds)
   }
   if(new Set(rows.map(row=>row.worldRef)).size!==rows.length)deny('SOURCE_DUPLICATE_WORLD_REFERENCE')
@@ -213,7 +224,7 @@ export class LocalWorldLifecycle implements LocalWorldLifecyclePort {
    await this.roots()
    if(this.source()!==source)deny('LOCAL_SOURCE_REPLACED')
    const request={contractVersion:'local-worlds/v2' as const,requestId:q.requestId,templateId:q.templateId,displayName:q.displayName}
-   const created=result(validateBoundResponse('local-worlds/v2','createWorld',request,await source.createWorld(request)))
+   const created=result(validateBoundResponse('local-worlds/v2','createWorld',request,await peer(()=>source.createWorld(request))))
    return {...created,worldId:worldId(created.worldRef)}
   })
  }
@@ -237,7 +248,7 @@ export class LocalWorldLifecycle implements LocalWorldLifecyclePort {
      await this.checkDirectory(locator)
      if(this.source()!==source)deny('LOCAL_SOURCE_REPLACED','TRANSACTION_CONFLICT')
      markMutation()
-     return result(validateBoundResponse('local-worlds/v2','deleteWorld',request,await source.deleteWorld(request)))
+     return result(validateBoundResponse('local-worlds/v2','deleteWorld',request,await peer(()=>source.deleteWorld(request))))
     })
    }catch(error){
     if(error instanceof Error&&error.message==='WORLD_IN_USE')deny('LOCAL_ENGINE_WORLD_IN_USE','TRANSACTION_CONFLICT')
@@ -262,14 +273,14 @@ export class LocalWorldLifecycle implements LocalWorldLifecyclePort {
    const request={contractVersion:'engine-runtime/v2' as const,requestId:`lifecycle:${q.requestId}`,worldRef:row.worldRef,
     engineProfile:{profileId:'luanti-native/v1',worldPath:locator.worldPath,userPath:locator.userPath,expectedDirectory:locator.directory}}
    markMutation()
-   const started=result(validateBoundResponse('engine-runtime/v2','StartWorldRuntime',request,await this.engine.StartWorldRuntime(request)))
+   const started=result(validateBoundResponse('engine-runtime/v2','StartWorldRuntime',request,await peer(()=>this.engine.StartWorldRuntime(request))))
    return {worldId:q.worldId,worldRef:row.worldRef,connectionRef:started.connectionRef,connectionIncarnationRef:started.connectionIncarnationRef}
   })
  }
  stop(input:OperationMap[typeof wire]['stop']['request']) {
   return this.call('stop',input,async q=>{
    const request={contractVersion:'engine-runtime/v2' as const,requestId:q.requestId,connectionRef:q.connectionRef}
-   return result(validateBoundResponse('engine-runtime/v2','StopWorldRuntime',request,await this.engine.StopWorldRuntime(request)))
+   return result(validateBoundResponse('engine-runtime/v2','StopWorldRuntime',request,await peer(()=>this.engine.StopWorldRuntime(request))))
   })
  }
  play(input:OperationMap[typeof wire]['play']['request']) {

@@ -40,13 +40,45 @@ Start returns WORLD_NOT_FOUND for an absent selected world, ADAPTER_UNAVAILABLE 
 Build with Node >=24 and Go >=1.25:
 
 ```sh
-npm install
+npm ci
 npm run verify:contracts
+npm run build
 npm test
+npm run test:package-boundary
 (cd engine-control && go test ./...)
 npm run build:helper
 node scripts/build-engine-control-runtime.mjs <official-http-engine-runtime> <new-output>
 ```
+
+The exact Git release `hanaworlds-contracts#v2.5.0` is a development supply only.
+`scripts/contract-source.json` records its peeled SHA and published-file digests;
+the lock retains the package manager's actual resolved Git identity. Every build
+checks that supply, runs the original TypeScript declaration/type check, and uses
+esbuild to embed the reachable validators, schema and digest code in `dist/`.
+Only the engine exchanges from the published lifecycle fixture enter the engine
+mock. The module's own lifecycle fixture remains available at its existing JSON
+export. Cordis and zod remain normal external dependencies; no host, sibling
+implementation or resolvable contracts package is distributed.
+
+Public declarations retain development type references to `hanaworlds-contracts`.
+TypeScript consumers need that exact development supply to compile against these
+declarations; JavaScript production consumers do not need it to load or execute.
+Independently bundled providers communicate using validated public packets and
+public error facts, without sharing a contracts exception constructor.
+
+`build`, `prepack` and `test` enforce `test:package-boundary`. It reads a real npm
+pack tgz, checks public entries and all shipped JavaScript/resource references,
+then installs it with pnpm 11.28.5's default strict production policy in a fresh
+consumer directory. It exercises every public entry, Cordis registration/disposal,
+the engine controller and lifecycle through filesystem/session fixtures, and
+records the production lock, resolution graph, artifact SHA and negative results.
+Negative packed candidates include forbidden contract dependencies and value
+loads, dynamic resource lookup, missing files/bundles and incorrect build source.
+The parent gate invokes normal child prepack with a live-parent recursion marker;
+child prepack still rebuilds and verifies the supply before the parent checks its
+tgz. Installation scripts and package manager security policies remain enabled.
+These checks do not start a user's native world or establish actual Host/UI,
+reliable native guard, official subscription or owner acceptance.
 
 The runtime assembly script preserves its baseline's exact Luanti 5.17.0 artifact hash and source revision. It requires that artifact as input and creates a new output directory. The plugin does not install an engine automatically.
 
