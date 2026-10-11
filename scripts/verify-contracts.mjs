@@ -13,7 +13,7 @@ assert.equal(lock.packages['node_modules/hanaworlds-contracts'].version,'2.5.0')
 assert.equal(lock.packages['node_modules/hanaworlds-contracts'].resolved,'git+https://github.com/yzsnstotz/hanaworlds-contracts.git#f0c6751e984bb15081ea70c351ccbb484c91226c')
 assert.equal(typeof describeSourceWorld,'function')
 assert.equal(typeof createLocalWorldSourceMock,'function')
-for(const operation of ['describe','list','create','launch','stop','play'])assert.equal(typeof LocalWorldLifecycle.prototype[operation],'function')
+for(const operation of ['describe','list','create','describeDelete','delete','launch','stop','play'])assert.equal(typeof LocalWorldLifecycle.prototype[operation],'function')
 assert.equal(typeof apply,'function')
 for(const operation of ['StartWorldRuntime','StopWorldRuntime','ReadRuntimeStatus']) {
  assert.equal(typeof NativeEngineRuntime.prototype[operation],'function')
@@ -34,4 +34,4 @@ for(const x of lifecycle.exchanges){
  if(x.response.result)validateBoundResponse(x.wire,x.operation,x.request,localMock(x.wire,x.operation,x.request))
 }
 assert.equal(localMock('world-lifecycle/v2','describe',{contractVersion:'world-lifecycle/v2',requestId:'verify'}).result.canPlay,false)
-console.log('contracts v2.5.0 / f0c6751: exact lock, published source locator helper, 3 engine and 6 lifecycle operations; all examples admitted')
+console.log('contracts v2.5.0 / f0c6751: exact lock, published source locator helper, 3 engine and 8 lifecycle operations; all examples admitted')

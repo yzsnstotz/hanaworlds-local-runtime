@@ -11,13 +11,15 @@ export function createEngineRuntimeMock(refusals: Record<string,ErrorCode> = {})
   ReadRuntimeStatus:async input=>call('engine-runtime/v2','ReadRuntimeStatus',input),
  }
 }
-/** Six-operation local-runtime-02 fixture; play is explicitly unavailable. */
+/** Eight-operation lifecycle fixture; play is explicitly unavailable. */
 export function createLocalWorldLifecycleMock(refusals:Record<string,ErrorCode>={}):LocalWorldLifecyclePort {
  const call=createWorldLifecycleMock(lifecycleFixture,refusals)
  return {
   describe:async input=>call('world-lifecycle/v2','describe',input),
   list:async input=>call('world-lifecycle/v2','list',input),
   create:async input=>call('world-lifecycle/v2','create',input),
+  describeDelete:async input=>call('world-lifecycle/v2','describeDelete',input),
+  delete:async input=>call('world-lifecycle/v2','delete',input),
   launch:async input=>call('world-lifecycle/v2','launch',input),
   stop:async input=>call('world-lifecycle/v2','stop',input),
   play:async input=>{
