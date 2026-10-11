@@ -1,9 +1,9 @@
 {
   "name": "hanaworlds-local-runtime",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "license": "MIT",
-  "description": "Cordis local Luanti runtime provider; engine lifecycle only in local-runtime-01",
+  "description": "Cordis Luanti world-source lifecycle and native engine provider",
   "engines": {
     "node": ">=24"
   },
@@ -17,7 +17,8 @@
     "./mock": {
       "types": "./dist/mock.d.ts",
       "import": "./dist/mock.js"
-    }
+    },
+    "./examples/world-lifecycle.json": "./examples/world-lifecycle.json"
   },
   "files": [
     "dist",
@@ -38,7 +39,7 @@
   },
   "dependencies": {
     "@deepseek-ai/cordis": "4.0.4",
-    "hanaworlds-contracts": "git+https://github.com/yzsnstotz/hanaworlds-contracts.git#v2.3.0",
+    "hanaworlds-contracts": "git+https://github.com/yzsnstotz/hanaworlds-contracts.git#v2.5.0",
     "zod": "4.4.3"
   },
   "devDependencies": {

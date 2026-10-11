@@ -1,6 +1,7 @@
 /** C-engine-runtime provider. Engine-specific inputs belong to this source, never the host. */
 import { randomUUID } from 'node:crypto'
 import { isAbsolute } from 'node:path'
+import {lstat,realpath} from 'node:fs/promises'
 import { z } from 'zod'
 import { validateRequest, validateBoundResponse, requestDigest, type EngineRuntimePort, type EngineRuntimeStartRequest,
  type EngineRuntimeStopRequest, type EngineRuntimeReadStatusRequest, type NativeControlInput,
@@ -10,7 +11,9 @@ import { NativeEngineControl, type NativeControlSession } from './engine-control
 
 const wire = 'engine-runtime/v2' as const
 const profile = z.object({ profileId: z.literal('luanti-native/v1'),
- worldPath: z.string().refine(isAbsolute), userPath: z.string().refine(isAbsolute) }).strict()
+ worldPath: z.string().refine(isAbsolute), userPath: z.string().refine(isAbsolute),
+ expectedDirectory:z.object({device:z.string().regex(/^\d+$/),inode:z.string().regex(/^\d+$/)}).strict().optional() }).strict()
+export interface DirectoryIdentity {device:string;inode:string}
 interface RuntimeRecord { query: NativeControlQuery; started: EngineRuntimeStarted; state: 'RUNNING' | 'STOPPED' }
 function refusal(code: 'ADAPTER_UNAVAILABLE' | 'WORLD_NOT_FOUND' | 'CONNECTION_NOT_FOUND') {
  return { code, phase: 'validate' as const, retryability: 'AFTER_NEW_FACTS' as const, mutationState: 'NONE' as const,
@@ -23,19 +26,33 @@ export class NativeEngineRuntime implements EngineRuntimePort {
  private readonly starting = new Set<string>()
  private readonly startingWorlds = new Set<string>()
  private readonly worldBindings = new Map<string,string>()
+ private readonly expectedDirectories = new Map<string,DirectoryIdentity>()
  private closed = false
  private cleanupFailure: {cause: unknown} | undefined
  private readonly queues = new Map<string, Promise<void>>()
- constructor(start: (input: NativeControlInput) => Promise<NativeControlSession>) {
+ constructor(start: (input: NativeControlInput, expectedDirectory?:DirectoryIdentity) => Promise<NativeControlSession>) {
   this.control = new NativeEngineControl(async input => {
+   const expected=this.expectedDirectories.get(input.operationRef)
+   const check=async()=>{
+    if(!expected)return
+    let st
+    try{st=await lstat(input.worldPath,{bigint:true})}catch(error){
+     if((error as NodeJS.ErrnoException).code==='ENOENT')throw Error('WORLD_NOT_FOUND')
+     throw error
+    }
+    if(!st.isDirectory()||await realpath(input.worldPath)!==input.worldPath
+     ||String(st.dev)!==expected.device||String(st.ino)!==expected.inode)throw Error('LOCAL_WORLD_CHANGED')
+   }
+   await check()
    let session: NativeControlSession
-   try { session = await start(input) } catch (error) {
+   try { session = await start(input,expected) } catch (error) {
     if (error instanceof NativeCleanupFailure) this.cleanupFailure ??= {cause:error.failure}
     throw error
    }
    const close = async () => {
     try { await session.close() } catch (error) { this.cleanupFailure ??= {cause:error}; throw new NativeCleanupFailure(error) }
    }
+   try{await check()}catch(error){await close();throw error}
    if (session.worldPath !== input.worldPath || !Number.isSafeInteger(session.processId) || session.processId < 1) {
     await close(); throw Error('ENGINE_BINDING_MISMATCH')
    }
@@ -67,6 +84,7 @@ export class NativeEngineRuntime implements EngineRuntimePort {
     this.startingWorlds.add(q.worldRef)
     try {
      const selected = profile.parse(q.engineProfile)
+     if(selected.expectedDirectory)this.expectedDirectories.set(q.requestId,selected.expectedDirectory)
      const bound = this.worldBindings.get(q.worldRef)
      if (bound && bound !== selected.worldPath) throw Error('ENGINE_BINDING_MISMATCH')
      const native = { worldPath: selected.worldPath, userPath: selected.userPath,
@@ -82,7 +100,7 @@ export class NativeEngineRuntime implements EngineRuntimePort {
      this.worldBindings.set(q.worldRef,query.worldPath)
      this.records.set(result.connectionRef, {query, started: result, state:'RUNNING'})
      this.requests.set(q.requestId, {digest, connectionRef:result.connectionRef})
-    } finally { this.starting.delete(q.requestId); this.startingWorlds.delete(q.worldRef) }
+    } finally { this.expectedDirectories.delete(q.requestId); this.starting.delete(q.requestId); this.startingWorlds.delete(q.worldRef) }
    }
   } catch (failure) {
    if (failure instanceof NativeCleanupFailure) throw failure.failure
