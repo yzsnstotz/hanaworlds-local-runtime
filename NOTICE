@@ -1,0 +1,19 @@
+hanaworlds-local-runtime · local-runtime-01
+
+Name · version/revision · license · origin · use
+
+- DeepSeek Harness / Cordis · @deepseek-ai/cordis 4.0.4 · MIT · https://github.com/deepseek-ai/deepseek-harness (vendor/cordis; npm published package) · dependency for Cordis apply/service lifecycle, D-5.
+- HanaWorlds desktop source · bd964cdf (full baseline in docs/PROVENANCE.json) · MIT (LICENSE retained) · https://github.com/yzsnstotz/hanaworlds-desktop · requested five TS files, native Go helper, fixture probe and runtime assembly script; source migration with one documented native startup cleanup marker.
+- hanaworlds-contracts · 2.3.0 / f89b05f61f5db79c32c6d63b3ea5c3b79c5c53ef · MIT · git+https://github.com/yzsnstotz/hanaworlds-contracts.git#v2.3.0 · published neutral port types/validators/examples; no sibling module imports.
+- Luanti · 5.17.0 / c0e6812b1a4260bb25a1f606f70f55f4962bb97d · LGPL-2.1-or-later (engine; artwork licenses supplied by artifact) · https://github.com/luanti-org/luanti · external runtime, D-7. Not bundled in this source package. Build script copies upstream license and artifact licenses; preserves pinned artifact hash.
+- Go toolchain · tested go1.26.0; module language minimum 1.25 · BSD-3-Clause · https://github.com/golang/go · builds native-control and fixture probe; assembly copies toolchain LICENSE.
+- github.com/HimbeerserverDE/mt · v0.0.0-20260821120253-7d1d3af7c7d4 · MIT · https://github.com/HimbeerserverDE/mt · native Luanti protocol; assembly copies module LICENSE.
+- github.com/HimbeerserverDE/srp · v0.0.0 · MIT · https://github.com/HimbeerserverDE/srp · native authentication/probe fixture; assembly copies module LICENSE.
+- github.com/klauspost/compress · v1.20.1 · BSD-3-Clause (additional component notices in upstream LICENSE) · https://github.com/klauspost/compress · native protocol transitive dependency; assembly copies module LICENSE.
+- zod · 4.4.3 · MIT · https://github.com/colinhacks/zod · verified content manifests and source-owned native profile validation.
+- canonicalize · 5.1.0 · Apache-2.0 · https://github.com/erdtman/canonicalize · transitive published-contract digest implementation; contracts carries notice/license.
+- TypeScript · 5.8.3 · Apache-2.0 · https://github.com/microsoft/TypeScript · build/typechecking only.
+- @types/node · 24.19.2 · MIT · https://github.com/DefinitelyTyped/DefinitelyTyped · build types only.
+- Vitest · 4.1.11 · MIT · https://github.com/vitest-dev/vitest · test runner only.
+
+Game/mod archives are not bundled. DesktopLuantiContent requires an external supply.json containing each supplied component's source, revision, license and archive/per-file hashes. It does not choose or change upstream usage.

@@ -1,0 +1,186 @@
+{
+  "repository": "https://github.com/yzsnstotz/hanaworlds-desktop.git",
+  "baseline": "bd964cdf19785b14aa1e2f6d2a2ee350190a038f",
+  "files": [
+    {
+      "sourcePath": "apps/desktop-host/src/engine-control.ts",
+      "targetPath": "src/engine-control.ts",
+      "sourceSHA256": "81f2ae54f1018b9a034647e568256903468f00f448ee7b720a0513a2619d3ffb",
+      "history": [
+        "bd964cdf19785b14aa1e2f6d2a2ee350190a038f fix(world): retain stopped control and confirm safe deletion",
+        "4efd9f545c2309e1db239a4c35966f3a1d9297e8 fix(desktop): retain stopped-world control and clean rejected pairing",
+        "0ace297ca6a7517447051677e850b59949eb70fe feat(desktop): create and view flat worlds in the current conversation",
+        "66953b6c82593c60a0c7de865342b0637b362162 Connect Desktop Host to current local-world contracts and Undo",
+        "b332c7d66a0da65d2921c29a52a8307cd0aff2cb refactor(desktop): own local engine lifecycle without game authorization",
+        "6fc3e726219134fff6b59595ecd7ff70abbc27a4 fix(desktop): receive native world traffic while management is idle",
+        "5d05182c5099cde7f0911840c3c133bda4a16f7a feat(desktop): pair local worlds through current native authority",
+        "defe76a91699dcaf6d0e6c438dab7cf536171b85 diagnostic(desktop): attribute native stop handoff stages",
+        "50e319be3afeb7fae7f2ce2abe2b891132037c3d feat(desktop-host): authenticate native Luanti maintenance control"
+      ],
+      "deliveredSHA256": "81f2ae54f1018b9a034647e568256903468f00f448ee7b720a0513a2619d3ffb"
+    },
+    {
+      "sourcePath": "apps/desktop-host/src/native-engine-session.ts",
+      "targetPath": "src/native-engine-session.ts",
+      "sourceSHA256": "d994f7c56b39809ee2f4bb004b5f15cd02417a2a4f681ff8d83d6e08fba9186b",
+      "history": [
+        "bd964cdf19785b14aa1e2f6d2a2ee350190a038f fix(world): retain stopped control and confirm safe deletion",
+        "b332c7d66a0da65d2921c29a52a8307cd0aff2cb refactor(desktop): own local engine lifecycle without game authorization",
+        "6fc3e726219134fff6b59595ecd7ff70abbc27a4 fix(desktop): receive native world traffic while management is idle",
+        "5d05182c5099cde7f0911840c3c133bda4a16f7a feat(desktop): pair local worlds through current native authority",
+        "defe76a91699dcaf6d0e6c438dab7cf536171b85 diagnostic(desktop): attribute native stop handoff stages",
+        "e20b3b9a99a0ffb7efce64b62c35146159055520 fix(desktop): pace fresh native control queries within engine budget",
+        "2878da79184d17234d50928cddf79c78770a83e9 feat(desktop-host): ship restricted native HTTP engine capability",
+        "50e319be3afeb7fae7f2ce2abe2b891132037c3d feat(desktop-host): authenticate native Luanti maintenance control"
+      ],
+      "deliveredSHA256": "8fbb1e75fcfce8083df318be323c180c349a3ae0a2463cf7784ab77081e664d7",
+      "changes": "Import NativeCleanupFailure and mark startup cleanup failure while preserving original cause; successful native behavior unchanged."
+    },
+    {
+      "sourcePath": "apps/desktop-host/src/game-client.ts",
+      "targetPath": "src/game-client.ts",
+      "sourceSHA256": "4ed648d30346496babec5a623447410d242068d4454aaf5983d11891e8c287e9",
+      "history": [
+        "0ace297ca6a7517447051677e850b59949eb70fe feat(desktop): create and view flat worlds in the current conversation"
+      ],
+      "deliveredSHA256": "4ed648d30346496babec5a623447410d242068d4454aaf5983d11891e8c287e9"
+    },
+    {
+      "sourcePath": "apps/desktop-host/src/luanti-content.ts",
+      "targetPath": "src/luanti-content.ts",
+      "sourceSHA256": "93581d72d5b0f4fbf3271644ff5756bb2fb457e2b68d6893e791a492f4a41600",
+      "history": [
+        "2919b536495842bc57e93039e2d4e412a730bf5f feat(desktop): compose K3 region write path, flat world and product game supply"
+      ],
+      "deliveredSHA256": "93581d72d5b0f4fbf3271644ff5756bb2fb457e2b68d6893e791a492f4a41600"
+    },
+    {
+      "sourcePath": "apps/desktop-host/src/native-control-diagnostic.ts",
+      "targetPath": "src/native-control-diagnostic.ts",
+      "sourceSHA256": "24727f47cff2e4fa230c675fc87688b586a44db025149cd83224411376f5ae11",
+      "history": [
+        "defe76a91699dcaf6d0e6c438dab7cf536171b85 diagnostic(desktop): attribute native stop handoff stages"
+      ],
+      "deliveredSHA256": "24727f47cff2e4fa230c675fc87688b586a44db025149cd83224411376f5ae11"
+    },
+    {
+      "sourcePath": "apps/desktop-host/engine-control/go.mod",
+      "targetPath": "engine-control/go.mod",
+      "sourceSHA256": "4e39de59ac8d962bb437906813ce4e707ab7a3a71edb1135ff7c2189a4d33f40",
+      "history": [
+        "50e319be3afeb7fae7f2ce2abe2b891132037c3d feat(desktop-host): authenticate native Luanti maintenance control"
+      ],
+      "deliveredSHA256": "4e39de59ac8d962bb437906813ce4e707ab7a3a71edb1135ff7c2189a4d33f40"
+    },
+    {
+      "sourcePath": "apps/desktop-host/engine-control/go.sum",
+      "targetPath": "engine-control/go.sum",
+      "sourceSHA256": "33ba1841b7277c7f404df271165a072fa4e016f8f668817869c02457bc3b384c",
+      "history": [
+        "50e319be3afeb7fae7f2ce2abe2b891132037c3d feat(desktop-host): authenticate native Luanti maintenance control"
+      ],
+      "deliveredSHA256": "33ba1841b7277c7f404df271165a072fa4e016f8f668817869c02457bc3b384c"
+    },
+    {
+      "sourcePath": "apps/desktop-host/engine-control/idle-stream.go",
+      "targetPath": "engine-control/idle-stream.go",
+      "sourceSHA256": "223d2f847f4a66c69bda30137c50d563b32b3ea12203714ad97cba62f26ca0d7",
+      "history": [
+        "6fc3e726219134fff6b59595ecd7ff70abbc27a4 fix(desktop): receive native world traffic while management is idle"
+      ],
+      "deliveredSHA256": "223d2f847f4a66c69bda30137c50d563b32b3ea12203714ad97cba62f26ca0d7"
+    },
+    {
+      "sourcePath": "apps/desktop-host/engine-control/idle-stream_test.go",
+      "targetPath": "engine-control/idle-stream_test.go",
+      "sourceSHA256": "16a0402641992d8c15560ac335014a7408bfcdedda81a93a71f6afbc07bcf2ee",
+      "history": [
+        "6fc3e726219134fff6b59595ecd7ff70abbc27a4 fix(desktop): receive native world traffic while management is idle"
+      ],
+      "deliveredSHA256": "16a0402641992d8c15560ac335014a7408bfcdedda81a93a71f6afbc07bcf2ee"
+    },
+    {
+      "sourcePath": "apps/desktop-host/engine-control/main.go",
+      "targetPath": "engine-control/main.go",
+      "sourceSHA256": "881afdd54ee8436d02f671a28389a44dbba7cb33a682c73d9c39d2f9503c016e",
+      "history": [
+        "6fc3e726219134fff6b59595ecd7ff70abbc27a4 fix(desktop): receive native world traffic while management is idle",
+        "99a8973466029115e6f8a322000a97318a7e6453 fix(desktop-host): preserve received shutdown packets through channel close",
+        "defe76a91699dcaf6d0e6c438dab7cf536171b85 diagnostic(desktop): attribute native stop handoff stages",
+        "e20b3b9a99a0ffb7efce64b62c35146159055520 fix(desktop): pace fresh native control queries within engine budget",
+        "50e319be3afeb7fae7f2ce2abe2b891132037c3d feat(desktop-host): authenticate native Luanti maintenance control"
+      ],
+      "deliveredSHA256": "881afdd54ee8436d02f671a28389a44dbba7cb33a682c73d9c39d2f9503c016e"
+    },
+    {
+      "sourcePath": "apps/desktop-host/engine-control/main_test.go",
+      "targetPath": "engine-control/main_test.go",
+      "sourceSHA256": "7d8e885cf50e2f8abc271497569af84227592cdd2c0cc76b611ea893bbee6fbf",
+      "history": [
+        "e20b3b9a99a0ffb7efce64b62c35146159055520 fix(desktop): pace fresh native control queries within engine budget",
+        "50e319be3afeb7fae7f2ce2abe2b891132037c3d feat(desktop-host): authenticate native Luanti maintenance control"
+      ],
+      "deliveredSHA256": "7d8e885cf50e2f8abc271497569af84227592cdd2c0cc76b611ea893bbee6fbf"
+    },
+    {
+      "sourcePath": "apps/desktop-host/engine-control/packet-stream.go",
+      "targetPath": "engine-control/packet-stream.go",
+      "sourceSHA256": "3e0ebab9f002a205d4f51b5d5c4d142a2c61cc3db3bffc73b6652deabf3ca7f2",
+      "history": [
+        "6fc3e726219134fff6b59595ecd7ff70abbc27a4 fix(desktop): receive native world traffic while management is idle",
+        "99a8973466029115e6f8a322000a97318a7e6453 fix(desktop-host): preserve received shutdown packets through channel close"
+      ],
+      "deliveredSHA256": "3e0ebab9f002a205d4f51b5d5c4d142a2c61cc3db3bffc73b6652deabf3ca7f2"
+    },
+    {
+      "sourcePath": "apps/desktop-host/engine-control/packet-stream_test.go",
+      "targetPath": "engine-control/packet-stream_test.go",
+      "sourceSHA256": "a5f758faf35ba26a3e02533dfda3bfc2924a01c70bae965ed1bb2bd1bd4a494c",
+      "history": [
+        "99a8973466029115e6f8a322000a97318a7e6453 fix(desktop-host): preserve received shutdown packets through channel close"
+      ],
+      "deliveredSHA256": "a5f758faf35ba26a3e02533dfda3bfc2924a01c70bae965ed1bb2bd1bd4a494c"
+    },
+    {
+      "sourcePath": "apps/desktop-host/tests/native-control-runtime/go.mod",
+      "targetPath": "tests/native-control-runtime/go.mod",
+      "sourceSHA256": "73ae3e23b73c6303c33e1058f846528c55d1197c3068df6064ba18901d59bc83",
+      "history": [
+        "0b8f102a5a392c51f2faa872d3a4a5702f527140 test(desktop-host): retain native control runtime fixtures",
+        "50e319be3afeb7fae7f2ce2abe2b891132037c3d feat(desktop-host): authenticate native Luanti maintenance control"
+      ],
+      "deliveredSHA256": "73ae3e23b73c6303c33e1058f846528c55d1197c3068df6064ba18901d59bc83"
+    },
+    {
+      "sourcePath": "apps/desktop-host/tests/native-control-runtime/go.sum",
+      "targetPath": "tests/native-control-runtime/go.sum",
+      "sourceSHA256": "33ba1841b7277c7f404df271165a072fa4e016f8f668817869c02457bc3b384c",
+      "history": [
+        "0b8f102a5a392c51f2faa872d3a4a5702f527140 test(desktop-host): retain native control runtime fixtures",
+        "50e319be3afeb7fae7f2ce2abe2b891132037c3d feat(desktop-host): authenticate native Luanti maintenance control"
+      ],
+      "deliveredSHA256": "33ba1841b7277c7f404df271165a072fa4e016f8f668817869c02457bc3b384c"
+    },
+    {
+      "sourcePath": "apps/desktop-host/tests/native-control-runtime/main.go",
+      "targetPath": "tests/native-control-runtime/main.go",
+      "sourceSHA256": "edf566f837efc900b45a2a5e3b79780bfa5480f025e9a0b19db1f550a4282883",
+      "history": [
+        "2878da79184d17234d50928cddf79c78770a83e9 feat(desktop-host): ship restricted native HTTP engine capability",
+        "0b8f102a5a392c51f2faa872d3a4a5702f527140 test(desktop-host): retain native control runtime fixtures"
+      ],
+      "deliveredSHA256": "edf566f837efc900b45a2a5e3b79780bfa5480f025e9a0b19db1f550a4282883"
+    },
+    {
+      "sourcePath": "apps/desktop-host/scripts/build-engine-control-runtime.mjs",
+      "targetPath": "scripts/build-engine-control-runtime.mjs",
+      "sourceSHA256": "9a3828ce5eda44fe6df8f7d091aa0caa8976b4740799f2eef1546eeec9af83cc",
+      "history": [
+        "4fa143cdd24338f1f3fb65fdc7b917409d818e82 fix(desktop): ship portable profile store and macOS 14 engine",
+        "2878da79184d17234d50928cddf79c78770a83e9 feat(desktop-host): ship restricted native HTTP engine capability",
+        "50e319be3afeb7fae7f2ce2abe2b891132037c3d feat(desktop-host): authenticate native Luanti maintenance control"
+      ],
+      "deliveredSHA256": "9a3828ce5eda44fe6df8f7d091aa0caa8976b4740799f2eef1546eeec9af83cc"
+    }
+  ]
+}

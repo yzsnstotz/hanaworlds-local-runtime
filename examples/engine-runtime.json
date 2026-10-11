@@ -1,0 +1,176 @@
+{
+  "evidence": "SOURCE/FIXTURE only; no real world/runtime/UI",
+  "exchanges": [
+    {
+      "wire": "engine-runtime/v2",
+      "operation": "StartWorldRuntime",
+      "request": {
+        "contractVersion": "engine-runtime/v2",
+        "requestId": "fixture-StartWorldRuntime",
+        "worldRef": "fixture-world",
+        "engineProfile": {
+          "profileId": "fixture-engine/v1",
+          "sourceOwned": [
+            1,
+            false
+          ]
+        }
+      },
+      "response": {
+        "contractVersion": "engine-runtime/v2",
+        "requestId": "fixture-StartWorldRuntime",
+        "result": {
+          "worldRef": "fixture-world",
+          "connectionRef": "local-connection",
+          "connectionIncarnationRef": "socket-open-1",
+          "state": "RUNNING"
+        },
+        "error": null
+      }
+    },
+    {
+      "wire": "engine-runtime/v2",
+      "operation": "StartWorldRuntime",
+      "request": {
+        "contractVersion": "engine-runtime/v2",
+        "requestId": "fixture-StartWorldRuntime",
+        "worldRef": "fixture-world",
+        "engineProfile": {
+          "profileId": "fixture-engine/v1",
+          "sourceOwned": [
+            1,
+            false
+          ]
+        }
+      },
+      "response": {
+        "contractVersion": "engine-runtime/v2",
+        "requestId": "fixture-StartWorldRuntime",
+        "result": null,
+        "error": {
+          "code": "ADAPTER_UNAVAILABLE",
+          "phase": "validate",
+          "retryability": "AFTER_NEW_FACTS",
+          "mutationState": "NONE",
+          "transactionRef": null,
+          "causeCode": null,
+          "reason": "REQUIRED_FACT_UNKNOWN"
+        }
+      }
+    },
+    {
+      "wire": "engine-runtime/v2",
+      "operation": "StartWorldRuntime",
+      "request": {
+        "contractVersion": "engine-runtime/v2",
+        "requestId": "fixture-StartWorldRuntime",
+        "worldRef": "fixture-world",
+        "engineProfile": {
+          "profileId": "fixture-engine/v1",
+          "sourceOwned": [
+            1,
+            false
+          ]
+        }
+      },
+      "response": {
+        "contractVersion": "engine-runtime/v2",
+        "requestId": "fixture-StartWorldRuntime",
+        "result": null,
+        "error": {
+          "code": "WORLD_NOT_FOUND",
+          "phase": "validate",
+          "retryability": "AFTER_NEW_FACTS",
+          "mutationState": "NONE",
+          "transactionRef": null,
+          "causeCode": null,
+          "reason": "REQUIRED_FACT_UNKNOWN"
+        }
+      }
+    },
+    {
+      "wire": "engine-runtime/v2",
+      "operation": "StopWorldRuntime",
+      "request": {
+        "contractVersion": "engine-runtime/v2",
+        "requestId": "fixture-StopWorldRuntime",
+        "connectionRef": "local-connection"
+      },
+      "response": {
+        "contractVersion": "engine-runtime/v2",
+        "requestId": "fixture-StopWorldRuntime",
+        "result": {
+          "connectionRef": "local-connection",
+          "state": "STOPPED"
+        },
+        "error": null
+      }
+    },
+    {
+      "wire": "engine-runtime/v2",
+      "operation": "StopWorldRuntime",
+      "request": {
+        "contractVersion": "engine-runtime/v2",
+        "requestId": "fixture-StopWorldRuntime",
+        "connectionRef": "local-connection"
+      },
+      "response": {
+        "contractVersion": "engine-runtime/v2",
+        "requestId": "fixture-StopWorldRuntime",
+        "result": null,
+        "error": {
+          "code": "CONNECTION_NOT_FOUND",
+          "phase": "validate",
+          "retryability": "AFTER_NEW_FACTS",
+          "mutationState": "NONE",
+          "transactionRef": null,
+          "causeCode": null,
+          "reason": "REQUIRED_FACT_UNKNOWN"
+        }
+      }
+    },
+    {
+      "wire": "engine-runtime/v2",
+      "operation": "ReadRuntimeStatus",
+      "request": {
+        "contractVersion": "engine-runtime/v2",
+        "requestId": "fixture-ReadRuntimeStatus",
+        "connectionRef": "local-connection"
+      },
+      "response": {
+        "contractVersion": "engine-runtime/v2",
+        "requestId": "fixture-ReadRuntimeStatus",
+        "result": {
+          "connectionRef": "local-connection",
+          "connectionIncarnationRef": "socket-open-1",
+          "worldRef": "fixture-world",
+          "state": "RUNNING"
+        },
+        "error": null
+      }
+    },
+    {
+      "wire": "engine-runtime/v2",
+      "operation": "ReadRuntimeStatus",
+      "request": {
+        "contractVersion": "engine-runtime/v2",
+        "requestId": "fixture-ReadRuntimeStatus",
+        "connectionRef": "local-connection"
+      },
+      "response": {
+        "contractVersion": "engine-runtime/v2",
+        "requestId": "fixture-ReadRuntimeStatus",
+        "result": null,
+        "error": {
+          "code": "CONNECTION_NOT_FOUND",
+          "phase": "validate",
+          "retryability": "AFTER_NEW_FACTS",
+          "mutationState": "NONE",
+          "transactionRef": null,
+          "causeCode": null,
+          "reason": "REQUIRED_FACT_UNKNOWN"
+        }
+      }
+    }
+  ]
+}
