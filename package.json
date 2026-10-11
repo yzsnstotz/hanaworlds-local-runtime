@@ -21,7 +21,9 @@
     "./examples/world-lifecycle.json": "./examples/world-lifecycle.json"
   },
   "files": [
-    "dist",
+    "dist/*.js",
+    "dist/*.d.ts",
+    "dist/build-source.json",
     "engine-control/main.go",
     "engine-control/idle-stream.go",
     "engine-control/packet-stream.go",

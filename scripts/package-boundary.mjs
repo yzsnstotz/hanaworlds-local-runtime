@@ -131,6 +131,7 @@ export async function auditPackage(root) {
  const scan=async dir=>{for(const name of await readdir(dir)){const path=join(dir,name);if((await stat(path)).isDirectory())await scan(path);else if(/\.[cm]?js$/.test(path))await visit(path)}}
  await scan(root)
  const provenance=JSON.parse(await readFile(join(root,'dist/build-source.json')))
+ for(const name of await readdir(join(root,'dist')))assert.ok(name==='build-source.json'||Object.hasOwn(provenance.artifacts,'dist/'+name),'Unrecorded dist artifact: '+name)
  assert.equal(provenance.sha,identity.sha,'Wrong build source SHA')
  assert.equal(provenance.tag,identity.tag,'Wrong build source tag')
  assert.equal(provenance.version,identity.version,'Wrong build source version')

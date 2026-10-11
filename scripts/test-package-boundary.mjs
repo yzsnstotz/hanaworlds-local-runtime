@@ -82,6 +82,7 @@ for(const [name,edit,pattern] of [
  ['missing-fixture',d=>unlink(join(d,'examples/world-lifecycle.json')),/ENOENT/],
  ['wrong-source',async d=>{const p=JSON.parse(await readFile(join(d,'dist/build-source.json')));p.sha='0'.repeat(40);await writeFile(join(d,'dist/build-source.json'),JSON.stringify(p))},/Wrong build source SHA/],
  ['wrong-resolved',async d=>{const p=JSON.parse(await readFile(join(d,'dist/build-source.json')));p.resolved='git+https://github.com/other/contracts.git#'+p.sha;await writeFile(join(d,'dist/build-source.json'),JSON.stringify(p))},/Wrong build resolved identity/],
+ ['unrecorded-artifact',d=>writeFile(join(d,'dist/unrecorded-helper'),'unadmitted existing output'),/Unrecorded dist artifact/],
 ]) {
  const dir=join(run,'negative-'+name);await cp(packageDir,join(dir,'package'),{recursive:true});await edit(join(dir,'package'))
  // Match a real broken build: provenance must describe the changed bytes, so

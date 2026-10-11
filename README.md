@@ -59,6 +59,10 @@ Only the engine exchanges from the published lifecycle fixture enter the engine
 mock. The module's own lifecycle fixture remains available at its existing JSON
 export. Cordis and zod remain normal external dependencies; no host, sibling
 implementation or resolvable contracts package is distributed.
+The dist file list includes generated JS, declarations and the build receipt.
+Existing local `dist/native-control` outputs remain on disk. The unchanged Go
+helper sources and runtime assembly script are shipped; the assembly builds the
+helper into the explicitly selected native runtime, as before.
 
 Public declarations retain development type references to `hanaworlds-contracts`.
 TypeScript consumers need that exact development supply to compile against these
