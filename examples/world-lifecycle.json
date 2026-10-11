@@ -18,7 +18,7 @@
               "label": "Flat world"
             }
           ],
-          "canDelete": false,
+          "canDelete": true,
           "canPlay": false,
           "prerequisites": [
             {
@@ -175,6 +175,121 @@
           "transactionRef": null,
           "causeCode": null,
           "reason": "REQUIRED_FACT_UNKNOWN"
+        }
+      }
+    },
+    {
+      "wire": "world-lifecycle/v2",
+      "operation": "describeDelete",
+      "request": {
+        "contractVersion": "world-lifecycle/v2",
+        "requestId": "fixture-describeDelete",
+        "worldId": "fixture-world-id"
+      },
+      "response": {
+        "contractVersion": "world-lifecycle/v2",
+        "requestId": "fixture-describeDelete",
+        "result": {
+          "worldId": "fixture-world-id",
+          "worldRef": "fixture-world",
+          "confirmationName": "Fixture World",
+          "impacts": [
+            "The whole world folder \"Fixture World\" and everything built in it is permanently removed; this cannot be undone.",
+            "The world source refuses deletion while it holds the world open, bound to a session or mid-transaction, or if it cannot prove it created the world."
+          ]
+        },
+        "error": null
+      }
+    },
+    {
+      "wire": "world-lifecycle/v2",
+      "operation": "describeDelete",
+      "request": {
+        "contractVersion": "world-lifecycle/v2",
+        "requestId": "fixture-describeDelete",
+        "worldId": "fixture-world-id"
+      },
+      "response": {
+        "contractVersion": "world-lifecycle/v2",
+        "requestId": "fixture-describeDelete",
+        "result": null,
+        "error": {
+          "code": "WORLD_NOT_FOUND",
+          "phase": "validate",
+          "retryability": "AFTER_NEW_FACTS",
+          "mutationState": "NONE",
+          "transactionRef": null,
+          "causeCode": null,
+          "reason": "REQUIRED_FACT_UNKNOWN"
+        }
+      }
+    },
+    {
+      "wire": "world-lifecycle/v2",
+      "operation": "delete",
+      "request": {
+        "contractVersion": "world-lifecycle/v2",
+        "requestId": "fixture-delete",
+        "worldId": "fixture-world-id",
+        "confirmationName": "Fixture World"
+      },
+      "response": {
+        "contractVersion": "world-lifecycle/v2",
+        "requestId": "fixture-delete",
+        "result": {
+          "worldId": "fixture-world-id",
+          "worldRef": "fixture-world",
+          "confirmationName": "Fixture World",
+          "deleted": true
+        },
+        "error": null
+      }
+    },
+    {
+      "wire": "world-lifecycle/v2",
+      "operation": "delete",
+      "request": {
+        "contractVersion": "world-lifecycle/v2",
+        "requestId": "fixture-delete",
+        "worldId": "fixture-world-id",
+        "confirmationName": "Fixture World"
+      },
+      "response": {
+        "contractVersion": "world-lifecycle/v2",
+        "requestId": "fixture-delete",
+        "result": null,
+        "error": {
+          "code": "WORLD_NOT_FOUND",
+          "phase": "validate",
+          "retryability": "AFTER_NEW_FACTS",
+          "mutationState": "NONE",
+          "transactionRef": null,
+          "causeCode": null,
+          "reason": "REQUIRED_FACT_UNKNOWN"
+        }
+      }
+    },
+    {
+      "wire": "world-lifecycle/v2",
+      "operation": "delete",
+      "request": {
+        "contractVersion": "world-lifecycle/v2",
+        "requestId": "fixture-delete",
+        "worldId": "fixture-world-id",
+        "confirmationName": "Fixture World"
+      },
+      "response": {
+        "contractVersion": "world-lifecycle/v2",
+        "requestId": "fixture-delete",
+        "result": null,
+        "error": {
+          "code": "TRANSACTION_CONFLICT",
+          "phase": "validate",
+          "retryability": "AFTER_NEW_FACTS",
+          "mutationState": "NONE",
+          "transactionRef": null,
+          "causeCode": null,
+          "reason": "PAYLOAD_CHANGED"
         }
       }
     },

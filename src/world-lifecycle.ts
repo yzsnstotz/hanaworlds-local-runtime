@@ -10,8 +10,13 @@ import {ContractError, describeSourceWorld, validateRequest, validateBoundRespon
 import {DesktopLuantiContent} from './luanti-content.ts'
 
 const wire='world-lifecycle/v2' as const
-type Operation='describe'|'list'|'create'|'launch'|'stop'|'play'
+type Operation='describe'|'list'|'create'|'describeDelete'|'delete'|'launch'|'stop'|'play'
 export type LocalWorldLifecyclePort=Pick<WorldLifecyclePort,Operation>
+/** Engine-side removal guard: no native session may run or start on a directory being deleted. */
+export interface WorldRetirement {
+ retireWorld<T>(worldPath:string,work:()=>Promise<T>):Promise<T>
+ worldInUse(worldPath:string):boolean
+}
 export interface LifecycleConfig {worldRoots: readonly string[]; userPath?: string; contentBundle?: string; runtimeRoot: string}
 type Content=Pick<DesktopLuantiContent,'userPath'|'gameId'|'describe'|'ensure'>
 const canonical=z.string().refine(isAbsolute)
@@ -40,7 +45,7 @@ export class LocalWorldLifecycle implements LocalWorldLifecyclePort {
  private tail:Promise<void>=Promise.resolve()
  private readonly config:LifecycleConfig
  constructor(config:LifecycleConfig,private readonly source:()=>LocalWorldsPort|undefined,
-  private readonly engine:EngineRuntimePort,private readonly content?:()=>Promise<Content>) {
+  private readonly engine:EngineRuntimePort&Partial<WorldRetirement>,private readonly content?:()=>Promise<Content>) {
   this.config={...config,worldRoots:[...config.worldRoots]}
  }
  private adapter():LocalWorldsPort {
@@ -72,10 +77,12 @@ export class LocalWorldLifecycle implements LocalWorldLifecyclePort {
     if(operation==='launch' && mutationStarted && !(failure instanceof Refused))throw failure
     const fact=failure instanceof Refused ? failure.fact : refusal('ADAPTER_UNAVAILABLE')
     const declared=worldLifecycle.operations.find(o=>o.wire===wire&&o.operation===operation)!.errors
-    const unavailable=operation==='stop'?'CONNECTION_NOT_FOUND':operation==='play'?'CAPABILITY_UNAVAILABLE':'ADAPTER_UNAVAILABLE'
+    // describeDelete/delete declare no ADAPTER_UNAVAILABLE; causeCode keeps the real reason.
+    const unavailable=({stop:'CONNECTION_NOT_FOUND',play:'CAPABILITY_UNAVAILABLE',describeDelete:'WORLD_NOT_FOUND',delete:'TRANSACTION_CONFLICT'} as const)[operation as string]??'ADAPTER_UNAVAILABLE'
     error=declared.includes(fact.code)?fact: {...fact,code:unavailable,causeCode:fact.code}
     if(mutationStarted && !(failure instanceof Refused))error={...error,mutationState:'UNKNOWN'}
-    console.info('LOCAL_RUNTIME_REJECTED',operation,failure instanceof Refused?failure.diagnostic:'SOURCE_OR_PREREQUISITE_UNAVAILABLE')
+    console.info('LOCAL_RUNTIME_REJECTED',operation,failure instanceof Refused?failure.diagnostic:'SOURCE_OR_PREREQUISITE_UNAVAILABLE',
+     failure instanceof Refused?'':String((failure as Error)?.message??failure))
    }
    return validateBoundResponse(wire,operation,q,{contractVersion:wire,requestId:q.requestId,result:value,error}) as OperationMap[typeof wire][N]['response']
   })
@@ -170,8 +177,21 @@ export class LocalWorldLifecycle implements LocalWorldLifecyclePort {
    }catch{installed=false}
    prerequisites.push({prerequisiteId:'engine-runtime',label:'Verified native engine for this platform',satisfied:installed},
     {prerequisiteId:'graphical-entry',label:'Graphical world entry readback unavailable; spawn is not ENTERED',satisfied:false})
-   return {templates:[{templateId:'flat',label:'Flat world'}],canDelete:false,canPlay:false,prerequisites}
+   return {templates:[{templateId:'flat',label:'Flat world'}],canDelete:this.deletable(),canPlay:false,prerequisites}
   })
+ }
+ /** Deletion needs the source's deleteWorld and an engine that can hold the directory out of use. */
+ private deletable():boolean {
+  return typeof this.source()?.deleteWorld==='function'&&typeof this.engine.retireWorld==='function'&&typeof this.engine.worldInUse==='function'
+ }
+ private async selectForDelete(worldIdentity:string) {
+  const source=this.adapter(),roots=await this.roots()
+  if(!this.deletable())deny('DELETE_CAPABILITY_UNAVAILABLE','TRANSACTION_CONFLICT')
+  const row=(await this.inventory(source,roots)).find(row=>worldId(row.worldRef)===worldIdentity)
+  if(!row)deny('SOURCE_WORLD_NOT_FOUND','WORLD_NOT_FOUND')
+  const {locator}=await this.observe(source,row,roots)
+  // The source rechecks its own current name; the hosts' title (world_name) never selects.
+  return {source,roots,row,locator}
  }
  list(input:OperationMap[typeof wire]['list']['request']) {
   return this.call('list',input,async()=>{
@@ -195,6 +215,40 @@ export class LocalWorldLifecycle implements LocalWorldLifecyclePort {
    const request={contractVersion:'local-worlds/v2' as const,requestId:q.requestId,templateId:q.templateId,displayName:q.displayName}
    const created=result(validateBoundResponse('local-worlds/v2','createWorld',request,await source.createWorld(request)))
    return {...created,worldId:worldId(created.worldRef)}
+  })
+ }
+ describeDelete(input:OperationMap[typeof wire]['describeDelete']['request']) {
+  return this.call('describeDelete',input,async q=>{
+   const {row,locator}=await this.selectForDelete(q.worldId)
+   const impacts=[`The whole world folder "${row.displayName}" and everything built in it is permanently removed; this cannot be undone.`,
+    'The world source refuses deletion while it holds the world open, bound to a session or mid-transaction, or if it cannot prove it created the world.']
+   if(this.engine.worldInUse!(locator.worldPath))impacts.push('A local engine is running this world: stop it before deleting.')
+   return {worldId:q.worldId,worldRef:row.worldRef,confirmationName:row.displayName,impacts}
+  })
+ }
+ delete(input:OperationMap[typeof wire]['delete']['request']) {
+  return this.call('delete',input,async (q,markMutation)=>{
+   const {source,roots,row,locator}=await this.selectForDelete(q.worldId)
+   if(q.confirmationName!==row.displayName)deny('DELETE_CONFIRMATION_MISMATCH','TRANSACTION_CONFLICT')
+   const request={contractVersion:'local-worlds/v2' as const,requestId:q.requestId,worldRef:row.worldRef,confirmationName:q.confirmationName}
+   let deleted
+   try{
+    deleted=await this.engine.retireWorld!(locator.worldPath,async()=>{
+     await this.checkDirectory(locator)
+     if(this.source()!==source)deny('LOCAL_SOURCE_REPLACED','TRANSACTION_CONFLICT')
+     markMutation()
+     return result(validateBoundResponse('local-worlds/v2','deleteWorld',request,await source.deleteWorld(request)))
+    })
+   }catch(error){
+    if(error instanceof Error&&error.message==='WORLD_IN_USE')deny('LOCAL_ENGINE_WORLD_IN_USE','TRANSACTION_CONFLICT')
+    if(error instanceof Error&&error.message==='CONTROL_CLOSED')deny('LOCAL_ENGINE_CLOSED','TRANSACTION_CONFLICT')
+    throw error
+   }
+   // Readback: the source's fresh inventory must no longer list the world, and its directory must be gone.
+   const listed=(await this.inventory(source,roots)).some(other=>other.worldRef===row.worldRef)
+   const exists=await lstat(locator.worldPath).then(()=>true,(error:NodeJS.ErrnoException)=>{if(error.code==='ENOENT')return false;throw error})
+   if(listed||exists)throw Error(`LIFECYCLE_DELETE_READBACK_MISMATCH listed=${listed} exists=${exists}`)
+   return {worldId:q.worldId,worldRef:deleted.worldRef,confirmationName:deleted.confirmationName,deleted:true as const}
   })
  }
  launch(input:OperationMap[typeof wire]['launch']['request']) {

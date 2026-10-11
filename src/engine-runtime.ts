@@ -25,6 +25,8 @@ export class NativeEngineRuntime implements EngineRuntimePort {
  private readonly requests = new Map<string, {digest:string; connectionRef:string}>()
  private readonly starting = new Set<string>()
  private readonly startingWorlds = new Set<string>()
+ private readonly startingPaths = new Set<string>()
+ private readonly retiringPaths = new Set<string>()
  private readonly worldBindings = new Map<string,string>()
  private readonly expectedDirectories = new Map<string,DirectoryIdentity>()
  private closed = false
@@ -82,8 +84,12 @@ export class NativeEngineRuntime implements EngineRuntimePort {
     if (this.startingWorlds.has(q.worldRef) || [...this.records.values()].some(row=>row.started.worldRef===q.worldRef&&row.state==='RUNNING')) throw Error('WORLD_ALREADY_RUNNING')
     this.starting.add(q.requestId)
     this.startingWorlds.add(q.worldRef)
+    let startedPath: string | undefined
     try {
      const selected = profile.parse(q.engineProfile)
+     if (this.retiringPaths.has(selected.worldPath)) throw Error('WORLD_RETIRING')
+     this.startingPaths.add(selected.worldPath)
+     startedPath = selected.worldPath
      if(selected.expectedDirectory)this.expectedDirectories.set(q.requestId,selected.expectedDirectory)
      const bound = this.worldBindings.get(q.worldRef)
      if (bound && bound !== selected.worldPath) throw Error('ENGINE_BINDING_MISMATCH')
@@ -100,7 +106,10 @@ export class NativeEngineRuntime implements EngineRuntimePort {
      this.worldBindings.set(q.worldRef,query.worldPath)
      this.records.set(result.connectionRef, {query, started: result, state:'RUNNING'})
      this.requests.set(q.requestId, {digest, connectionRef:result.connectionRef})
-    } finally { this.expectedDirectories.delete(q.requestId); this.starting.delete(q.requestId); this.startingWorlds.delete(q.worldRef) }
+    } finally {
+     this.expectedDirectories.delete(q.requestId); this.starting.delete(q.requestId); this.startingWorlds.delete(q.worldRef)
+     if (startedPath) this.startingPaths.delete(startedPath)
+    }
    }
   } catch (failure) {
    if (failure instanceof NativeCleanupFailure) throw failure.failure
@@ -109,6 +118,24 @@ export class NativeEngineRuntime implements EngineRuntimePort {
     ? 'WORLD_NOT_FOUND' : 'ADAPTER_UNAVAILABLE')
   }
   return validateBoundResponse(wire, 'StartWorldRuntime', q, { contractVersion: wire, requestId:q.requestId, result, error })
+ }
+ /** Runs world removal while no native session runs, starts or can start on that exact directory. */
+ async retireWorld<T>(worldPath: string, work: () => Promise<T>): Promise<T> {
+  if (this.closed) throw Error('CONTROL_CLOSED')
+  if (this.worldInUse(worldPath)) throw Error('WORLD_IN_USE')
+  this.retiringPaths.add(worldPath)
+  try {
+   const value = await work()
+   // The directory is gone: its stopped records and world binding can never be started or read again.
+   for (const [ref, row] of this.records) if (row.query.worldPath === worldPath) this.records.delete(ref)
+   for (const [ref, path] of this.worldBindings) if (path === worldPath) this.worldBindings.delete(ref)
+   return value
+  } finally { this.retiringPaths.delete(worldPath) }
+ }
+ /** True while a native session for this exact directory runs or is starting. */
+ worldInUse(worldPath: string): boolean {
+  return this.startingPaths.has(worldPath) || this.retiringPaths.has(worldPath)
+   || [...this.records.values()].some(row => row.query.worldPath === worldPath && row.state === 'RUNNING')
  }
  private serial<T>(connectionRef: string, work:()=>Promise<T>): Promise<T> {
   const pending = (this.queues.get(connectionRef) ?? Promise.resolve()).then(work)

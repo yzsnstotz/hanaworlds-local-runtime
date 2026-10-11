@@ -2,7 +2,7 @@ import {expect,it} from 'vitest'
 import {validateBoundResponse} from 'hanaworlds-contracts'
 import {createLocalWorldLifecycleMock} from '../src/mock.ts'
 import fixture from '../examples/world-lifecycle.json' with {type:'json'}
-it('publishes all six operations through an admitted stateless mock with truthful unavailable play',async()=>{
+it('publishes all eight operations through an admitted stateless mock with truthful unavailable play',async()=>{
  const mock=createLocalWorldLifecycleMock()
  for(const exchange of fixture.exchanges){
   if(exchange.response.error)continue
@@ -12,7 +12,7 @@ it('publishes all six operations through an admitted stateless mock with truthfu
   expect(response.result).toEqual(exchange.response.result)
  }
  const description=await mock.describe({contractVersion:'world-lifecycle/v2',requestId:'describe'})
- expect(description.result?.canPlay).toBe(false);expect(description.result?.canDelete).toBe(false)
+ expect(description.result?.canPlay).toBe(false);expect(description.result?.canDelete).toBe(true)
  const play=await mock.play({contractVersion:'world-lifecycle/v2',requestId:'play',worldId:'fixture-world-id'})
  expect(play.error?.code).toBe('CAPABILITY_UNAVAILABLE');expect(play.result).toBeNull()
 })

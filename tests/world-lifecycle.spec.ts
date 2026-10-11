@@ -22,7 +22,7 @@ async function rig() {
   await mkdir(path);await writeFile(join(path,'world.mt'),'world_name = Same\ngameid = mineclone2\n')
   await writeFile(join(path,'map_meta.txt'),'mg_name = flat\n')
  }
- let starts=0,sourceReads=0,created=0,stopped=false,live=false
+ let starts=0,sourceReads=0,created=0,deletes=0,stopped=false,live=false
  const facts={private:{notADirectory: '/never/read/from/facts'},supplied:['game','mod']}
  const calls:string[]=[]
  const source:LocalWorldsPort={
@@ -30,7 +30,17 @@ async function rig() {
   async createWorld(input){created++;return validateBoundResponse('local-worlds/v2','createWorld',input,
    {contractVersion:input.contractVersion,requestId:input.requestId,result:{worldRef:'source-a',templateId:input.templateId,displayName:input.displayName,creationFacts:facts},error:null})},
   async pair(){calls.push('pair');throw Error('PAIR_MUST_NOT_BE_USED')},
-  async deleteWorld(){throw Error('OUT_OF_CARD')},
+  async deleteWorld(input){
+   // Fixture source semantics: recheck its own current name, remove the directory, drop it from discovery.
+   deletes++;calls.push('deleteWorld')
+   const index=worlds.findIndex(w=>w.worldRef===input.worldRef)
+   const refuse=(code:'WORLD_NOT_FOUND'|'TRANSACTION_CONFLICT')=>({contractVersion:input.contractVersion,requestId:input.requestId,result:null,
+    error:{code,phase:'apply' as const,retryability:'AFTER_NEW_FACTS' as const,mutationState:'NONE' as const,transactionRef:null,causeCode:null,reason:'REQUIRED_FACT_UNKNOWN' as const}})
+   if(index<0)return refuse('WORLD_NOT_FOUND')
+   if(worlds[index].displayName!==input.confirmationName)return refuse('TRANSACTION_CONFLICT')
+   await rm(paths.get(input.worldRef)!,{recursive:true});worlds.splice(index,1)
+   return {contractVersion:input.contractVersion,requestId:input.requestId,result:{worldRef:input.worldRef,confirmationName:input.confirmationName,deleted:true as const},error:null}
+  },
   async describeSourceWorld(input){
    sourceReads++;calls.push('source');const path=paths.get(input.worldRef)!
    let stat
@@ -54,9 +64,9 @@ async function rig() {
  const content={userPath:base,gameId:()=> 'mineclone2',describe:async()=>[{state:'INSTALLED_VERIFIED'}],ensure:async()=>{calls.push('ensure')}}
  const runtime=new (plugin as any).LocalWorldLifecycle({worldRoots:[root],userPath:base,runtimeRoot:'/not-installed'},()=>source,engine,async()=>content)
  cleanups.push(()=>runtime.close())
- return {runtime,source,engine,paths,root,base,calls,facts,starts:()=>starts,reads:()=>sourceReads,created:()=>created}
+ return {runtime,source,engine,paths,root,base,calls,facts,starts:()=>starts,deletes:()=>deletes,reads:()=>sourceReads,created:()=>created}
 }
-it('exports the six-operation lifecycle provider',()=>{
+it('exports the eight-operation lifecycle provider',()=>{
  expect(typeof (plugin as any).LocalWorldLifecycle).toBe('function')
 })
 it('lists same-name worlds by source reference with verified Luanti tags and no path leak',async()=>{
@@ -71,7 +81,7 @@ it('lists same-name worlds by source reference with verified Luanti tags and no 
 })
 it('declares missing prerequisites and refuses ENTERED without graphical entry proof',async()=>{
  const r=await rig();const description=await r.runtime.describe(q)
- expect(description.result).toMatchObject({templates:[{templateId:'flat'}],canDelete:false,canPlay:false})
+ expect(description.result).toMatchObject({templates:[{templateId:'flat'}],canDelete:true,canPlay:false})
  expect(description.result.prerequisites).toContainEqual({prerequisiteId:'graphical-entry',label:expect.any(String),satisfied:false})
  const play=await r.runtime.play({...q,worldId:'anything'})
  expect(play.error.code).toBe('CAPABILITY_UNAVAILABLE');expect(r.starts()).toBe(0)
@@ -140,4 +150,63 @@ it('rejects malformed envelopes before content installation and awaits active wo
  expect((await r.runtime.list(q)).error.code).toBe('ADAPTER_UNAVAILABLE')
  expect((await r.runtime.stop({...q,connectionRef:'stale'})).error.code).toBe('CONNECTION_NOT_FOUND')
  expect((await r.runtime.play({...q,worldId:'stale'})).error.code).toBe('CAPABILITY_UNAVAILABLE')
+})
+it('describes deletion by the source current name without mutating or leaking paths',async()=>{
+ const r=await rig();const world=(await r.runtime.list(q)).result.worlds[1]
+ const input={...q,worldId:world.worldId};const response=await r.runtime.describeDelete(input)
+ validateBoundResponse(q.contractVersion,'describeDelete',input,response)
+ expect(response.result).toMatchObject({worldId:world.worldId,worldRef:'source-b',confirmationName:'Same'})
+ expect(response.result.impacts.length).toBeGreaterThan(0)
+ expect(JSON.stringify(response)).not.toContain(r.base)
+ expect(r.deletes()).toBe(0);expect((await lstat(r.paths.get('source-b')!)).isDirectory()).toBe(true)
+ expect((await r.runtime.describeDelete({...q,worldId:'unknown'})).error.code).toBe('WORLD_NOT_FOUND')
+})
+it('deletes through the source after name confirmation and list no longer shows the world',async()=>{
+ const r=await rig();const [a,b]=(await r.runtime.list(q)).result.worlds
+ const wrong=await r.runtime.delete({...q,worldId:a.worldId,confirmationName:'same'})
+ expect(wrong.error.code).toBe('TRANSACTION_CONFLICT');expect(wrong.error.mutationState).toBe('NONE');expect(r.deletes()).toBe(0)
+ const name=(await r.runtime.describeDelete({...q,worldId:a.worldId})).result.confirmationName
+ const input={...q,worldId:a.worldId,confirmationName:name};const deleted=await r.runtime.delete(input)
+ validateBoundResponse(q.contractVersion,'delete',input,deleted)
+ expect(deleted.result).toEqual({worldId:a.worldId,worldRef:'source-a',confirmationName:'Same',deleted:true})
+ const after=(await r.runtime.list(q)).result.worlds.map((w:any)=>w.worldId)
+ expect(after).toEqual([b.worldId])
+ await expect(lstat(r.paths.get('source-a')!)).rejects.toMatchObject({code:'ENOENT'})
+ expect((await r.runtime.delete(input)).error.code).toBe('WORLD_NOT_FOUND')
+ expect((await r.runtime.describeDelete({...q,worldId:a.worldId})).error.code).toBe('WORLD_NOT_FOUND')
+ expect(r.deletes()).toBe(1);expect(r.starts()).toBe(0)
+})
+it('refuses deletion while a local engine runs the world and says so; deletes after stop',async()=>{
+ const r=await rig();const world=(await r.runtime.list(q)).result.worlds[0]
+ const launched=await r.runtime.launch({...q,worldId:world.worldId})
+ const described=await r.runtime.describeDelete({...q,worldId:world.worldId})
+ expect(described.result.impacts.some((line:string)=>/running/.test(line))).toBe(true)
+ const busy=await r.runtime.delete({...q,worldId:world.worldId,confirmationName:'Same'})
+ expect(busy.error.code).toBe('TRANSACTION_CONFLICT');expect(busy.error.mutationState).toBe('NONE');expect(r.deletes()).toBe(0)
+ expect((await r.runtime.stop({...q,connectionRef:launched.result.connectionRef})).result.state).toBe('STOPPED')
+ expect((await r.runtime.delete({...q,worldId:world.worldId,confirmationName:'Same'})).result.deleted).toBe(true)
+ // The engine no longer holds the deleted directory's binding or connection.
+ expect((await r.engine.ReadRuntimeStatus({contractVersion:'engine-runtime/v2',requestId:'gone',connectionRef:launched.result.connectionRef})).error.code).toBe('CONNECTION_NOT_FOUND')
+})
+it('passes source refusals through and reports UNKNOWN when the source claims deletion without readback',async()=>{
+ const r=await rig();const world=(await r.runtime.list(q)).result.worlds[0]
+ const original=r.source.deleteWorld.bind(r.source)
+ r.source.deleteWorld=async input=>({...(await original({...input,confirmationName:'not-the-name'})),requestId:input.requestId})
+ const refused=await r.runtime.delete({...q,worldId:world.worldId,confirmationName:'Same'})
+ expect(refused.error).toMatchObject({code:'TRANSACTION_CONFLICT',phase:'apply',mutationState:'NONE'})
+ r.source.deleteWorld=async input=>({contractVersion:input.contractVersion,requestId:input.requestId,
+  result:{worldRef:input.worldRef,confirmationName:input.confirmationName,deleted:true},error:null})
+ const lying=await r.runtime.delete({...q,worldId:world.worldId,confirmationName:'Same'})
+ expect(lying.error).toMatchObject({code:'TRANSACTION_CONFLICT',mutationState:'UNKNOWN',causeCode:'ADAPTER_UNAVAILABLE'})
+ expect((await r.runtime.list(q)).result.worlds.map((w:any)=>w.worldId)).toContain(world.worldId)
+})
+it('declares canDelete=false and refuses delete when the engine cannot hold the world out of use',async()=>{
+ const r=await rig();const engine={StartWorldRuntime:r.engine.StartWorldRuntime.bind(r.engine),StopWorldRuntime:r.engine.StopWorldRuntime.bind(r.engine),
+  ReadRuntimeStatus:r.engine.ReadRuntimeStatus.bind(r.engine)}
+ const runtime=new (plugin as any).LocalWorldLifecycle({worldRoots:[r.root],userPath:r.base,runtimeRoot:'/not-installed'},()=>r.source,engine)
+ cleanups.push(()=>runtime.close())
+ expect((await runtime.describe(q)).result.canDelete).toBe(false)
+ const world=(await runtime.list(q)).result.worlds[0]
+ expect((await runtime.delete({...q,worldId:world.worldId,confirmationName:'Same'})).error.code).toBe('TRANSACTION_CONFLICT')
+ expect(r.deletes()).toBe(0)
 })
